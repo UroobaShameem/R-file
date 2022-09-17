@@ -1,0 +1,260 @@
+
+---
+title: "R Lab Assignment"
+author: "Urooba Shameem"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+## Selecting and viewing dataset to work on
+
+```{r}
+
+data() #to view R built-in data sets description
+
+data("USArrests") #loading data set
+
+print(USArrests) #printing whole data set
+
+head(USArrests) #printing top 6rows of data set
+
+tail(USArrests, n=10) #printing last 10 rows of data set
+```
+
+## Displaying details about dataset
+
+```{r}
+
+names(USArrests) #variables used in data set
+
+str(USArrests) #structure of data set
+
+dim(USArrests) #dimension of data set (no.of rows)and(no. of columns)
+
+summary(USArrests) #summary of data set
+```
+
+## Plotting of Data Set
+
+```{r}
+
+mydata= head(USArrests) #select starting 6 rows for plotting
+
+library(ggplot2) #import package that is helpful in creating complex plots
+
+#simple bar plot
+barplot(mydata$Assault,
+        main = "Cases Of Assaults",
+        xlab = "No. of cases",
+        names.arg = row.names(mydata),
+        horiz= TRUE, las=1, col= rainbow(7))
+   #plotting a graph using box plot that shows cases of assault reported. Used labels for X and Y axis.Converted graph into horizontal format while using dark blue color for illustration. 
+
+
+#side-by-side bar plot
+barplot(cbind(mydata$'Murder', mydata$'Rape') ~row.names(mydata),
+        main = "Comparison between Murder and Rape cases",
+        beside = TRUE,
+        xlab = "Countries", ylab = "No. of cases",
+        legend.text = c("Murder","Rape"),
+        col =c("brown","green"))
+#plotting to show comparison between murder and rape cases by using side by side bar plot.using beside command to generate side by side values.
+
+
+#Stacked plot
+barplot(cbind(mydata$'UrbanPop', mydata$'Rape') ~row.names(mydata),
+        main = "Comparison between UrbanPop and Rape cases",
+        xlab = "Countries", ylab = "No. of cases",
+        legend.text = c("UrbanPop","Rape"),
+        col =c("purple","light blue"))
+#plotting to show comparison between urbanpop and rape cases, using purple and blue color for illustration.
+
+
+#Box plot
+boxplot(mydata, col="yellow",
+        main="Boxplot about Arrests",
+        xlab="Crimes", ylab="No. of arrests")
+#using a box plot to illustrate number of crimes.
+
+#Scatter plot
+plot(mydata$UrbanPop, mydata$Rape,
+     main="Scatter plot", col="brown",
+     xlab= "UrbanPop", ylab="Rapes")
+
+hist(USArrests$Murder, main="Murder Arrests",
+     xlab = "Murders Cases", col= rainbow(8))
+
+#VISUALIZATION USING GGPLOT
+
+#scatter plot
+ggplot(USArrests,aes(x=UrbanPop,
+                     y=Murder))+
+  geom_point(col="blue")+
+  geom_smooth(col="green")+
+  labs(x="Urban pop",
+       y="Murder",
+       title="Murders per Urban population")
+
+#Bar plot
+ggplot(USArrests,aes(x=UrbanPop,
+                     y=Murder,col=Rape,fill=Rape))+geom_col()
+     
+```
+
+## Correlation
+
+```{r}
+
+cor(USArrests) #command to show correlation between the variables.
+##There is a positive correlation. Murder and Assault cases are closely related to each other. 
+
+cor.test(USArrests$Murder,USArrests$Assault) #testing correlation between murder and assault cases.
+
+library(corrplot) #calling library to plot correlation
+
+corrdata = cor(USArrests) #storing correlation data into a variable
+
+#plotting correlation data using different methods
+
+corrplot(corrdata ,method = "number") #correlation data showing in form of numbers.
+
+corrplot(corrdata, method="color") #correlation data showing in form of colors.
+
+##color intensity is showing correlation coefficients. 
+```
+
+## Confidence Interval
+
+```{r}
+
+#loading new data set "Nile".
+data("Nile")
+
+nile_data= head(Nile) #storing top values from data set and storing in a variable.
+
+library(Rmisc) #loading library for confidence interval analysis
+
+CI(nile_data, ci=0.98) #calculate CI at 0.98 significance level. We can accept Null Hypothesis because mean is lying between upper and lower CI levels. 
+
+#Calculating mean and variance.
+mean(nile_data)
+
+sd(nile_data)
+
+#Calculating Standard Error.
+STDERR(nile_data)
+
+```
+
+## Hypothesis Testing
+
+```{r}
+library(stats)
+
+#Single sample test
+t.test(nile_data, mu=20) 
+#mean value if different from 20. P-value is greater than 0.05 so fail to reject Ho.
+
+#one sided test
+t.test(nile_data, mu=20, alternative = "greater")
+##Fail to reject Ho.
+
+#Two-sample test
+x= rnorm(100)
+y= rnorm(100)
+t.test(x,y)
+##P-value is less than 0.05 so reject Ho.
+
+```
+
+## Chi-square Testing
+
+```{r}
+
+#Using new data set for further analysis.
+data("quakes") #importing from R built-in data sets.
+head(quakes) #printing top values from data set.
+
+#test:1
+chisq.test(quakes$lat, quakes$long) #using chi square test for latitude and longitude of data set.
+##Fail to reject Ho. P-value is greater than significance level i.e. 0.05 latitude and longitude are two independent variables.
+
+#test:2
+chisq.test(quakes$long, quakes$mag) #chi-square test for longitude and magnitude.
+##Reject Ho. P-value is less than 0.05 Latitude and magnitude are two dependent variables.
+
+#test:3
+chisq.test(quakes$depth, quakes$mag) #chi-square test for depth and magnitude.
+##Fail to reject Ho. P-value greater than 0.05 the two variables are independent.
+
+```
+
+## Analysis of Variance
+
+```{r}
+
+#One way ANOVA
+boxplot(quakes$lat, quakes$long) #Plotting graph of latitude and longitude.
+
+a_data <- aov(quakes$lat ~  quakes$long) #storing anova values in a variable
+summary(a_data) #generating summary of anova result.
+
+##Ho: Means of two populations are equal.
+##HA: Means of two populations are not equal.
+ #F-value is highly significant and P-value is much less than significance level i.e.0.001 so we reject Null hypothesis Ho.
+
+library(gplots) #Importing gplot library for plotting graph
+
+#plotting mean graph between latitude and longitude
+plotmeans(quakes$lat ~ quakes$long, main="Mean Plot",
+          xlab = "Longitude", ylab = "Latitude")
+
+```
+
+## Linear and Multiple Regression:
+
+```{r}
+
+#Plotting graph to show relationship between magnitude and depth.
+scatter.smooth(x=quakes$mag, y=quakes$depth,
+        main="Magnitude ~ Depth", col= rainbow(4),
+        xlab = "Magnitude", ylab = "Depth")
+
+#Correlation between Magnitude and Stations.
+cor(quakes$mag, quakes$stations)
+#With a correlation of 0.8512, we can say that there is a fairly strong linear relationship between magnitude of earthquake and the number of stations reporting it.
+
+#Multiple Regression Formula
+#___________________________
+
+#analyzing details of the model and storing in a variable
+linmod= lm(quakes$mag ~ quakes$stations, data = quakes)
+
+# printing summary of analysis
+summary(linmod)
+# P-value is highly significant and it has a positive sign, so there is a positive correlation in it. Taking the square root of Multiple R-squared: 0.7242, we get 0.850 which shows that there is a 85 percent correlation between the Y and X variables.
+
+# beta0 = intercept of the regression line is 4.0972
+# beta1 = slope of the first independent variable 0.0156
+
+# Coefficients of variables
+coef(linmod)
+
+# Confidence Interval for Coefficients
+confint(linmod)
+
+# Storing residual data in a variable
+residual_quakes <- resid(linmod) 
+
+# plotting histogram for data
+hist(residual_quakes, col = rainbow(7))
+
+# Joint F-test
+anova(linmod)
+# Since F-statistic value is greater than the p-value. Therefore, we can say that by judging f value result is good.
+
+```
+
+
